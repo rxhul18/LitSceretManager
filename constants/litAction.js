@@ -1,53 +1,45 @@
+// @ts-nocheck
 const _litActionCode = async () => {
-    try {
+  try {
+    const apiKey = await Lit.Actions.decryptAndCombine({
+      accessControlConditions,
+      ciphertext,
+      dataToEncryptHash,
+      authSig: null,
+      chain: "ethereum",
+    });
 
-        const apiKey = await Lit.Actions.decryptAndCombine({
-            accessControlConditions,
-            ciphertext,
-            dataToEncryptHash,
-            authSig: null,
-            chain: "baseSepolia",
-          });
-
-          const messages = [
-          {
-            role: "system",
-            content:
-              "You are an AI assistant that helps people make informed blockchain trading decisions. Only answer with a single sentence.",
+    const blockNumber = await Lit.Actions.runOnce(
+      { waitForResponse: true, name: "ETH block number" },
+      async () => {
+        const resp = await fetch(`https://eth-mainnet.g.alchemy.com/v2/${apiKey}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          {
-            role: "user",
-            content: `${openAiPrompt}`,
-          },
-        ];
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "eth_blockNumber",
+            params: [],
+          }),
+        });
 
-          const responseInf = await fetch(
-            "https://api.openai.com/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${apiKey}`,
-              },
-              body: JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: messages,
-              }),
-            }
-          );
-  
-          const resultInf = await responseInf.json();
-          const answer = resultInf.choices[0].message.content;
+        let data = await resp.json();
 
+        if (data.result) {
+          data.result = parseInt(data.result, 16);
+          return data.result;
+        } else {
+          throw new Error("Failed to get block number");
+        }
+      }
+    );
 
-
-
-
-
-        Lit.Actions.setResponse({response:answer})
-    } catch (error) {
-        Lit.Actions.setResponse({ response: error.message });
-    }
+    Lit.Actions.setResponse({ response: blockNumber });
+  } catch (e) {
+    Lit.Actions.setResponse({ response: e.message });
   }
-  
-  export const litActionCode = `(${_litActionCode.toString()})();`;
+};
+
+export const litActionCode = `(${_litActionCode.toString()})();`;
