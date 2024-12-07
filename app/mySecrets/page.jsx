@@ -1,440 +1,156 @@
 "use client"
-import React, { useState, useEffect } from 'react'
-import { LitNodeClient, encryptString } from "@lit-protocol/lit-node-client";
-import { LitNetwork } from "@lit-protocol/constants";
-import { Copy, Trash2 } from "lucide-react";
-import { ethers } from "ethers";
-import { LitAccessControlConditionResource, LitAbility, createSiweMessageWithRecaps, generateAuthSig } from "@lit-protocol/auth-helpers";
-import * as LitJsSdk from "@lit-protocol/lit-node-client";
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Copy, Trash2 } from "lucide-react";
 
-export default function Secrets() {
-  const [litNodeClient, setLitNodeClient] = useState();
-  const [currentSecret, setCurrentSecret] = useState(null);
-  const [inputText, setInputText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [copyStatus, setCopyStatus] = useState("");
-  const [litActionCid, setLitActionCid] = useState("");
-  const [encryptedHistory, setEncryptedHistory] = useState([]);
-  const [encryptedData, setEncryptedData] = useState("");
-  const [dataToEncryptHash, setDataToEncryptHash] = useState("");
-  const [decryptedData, setDecryptedData] = useState("");
-
-  function getAccessControlConditions() {
-    return [
-      {
-        contractAddress: "ipfs://QmVhccY3ucrAsNx1LfGSMrYrBukDGKHgLtuCqygUzfTdTk",
-        standardContractType: "LitAction",
-        chain: "ethereum",
-        method: "checkVal",
-        returnValueTest: {
-          comparator: "=",
-          value: "true",
-        },
-      },
-    ];
-  }  
-  const router = useRouter();
-
+const SecretsListPage = () => {
+  const [secrets, setSecrets] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [copyStatus, setCopyStatus] = useState('');
+  
   useEffect(() => {
-    const savedHistory = localStorage.getItem('secretsHistory');
-    if (savedHistory) {
-      setEncryptedHistory(JSON.parse(savedHistory));
+    const savedSecrets = localStorage.getItem('secretsHistory');
+    if (savedSecrets) {
+      setSecrets(JSON.parse(savedSecrets));
     }
   }, []);
+
+  const deleteSecret = (id) => {
+    const updatedSecrets = secrets.filter(secret => secret.id !== id);
+    setSecrets(updatedSecrets);
+    localStorage.setItem('secretsHistory', JSON.stringify(updatedSecrets));
+  };
 
   const copyToClipboard = async (text, label) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopyStatus(`Copied ${label}!`);
-      setTimeout(() => setCopyStatus(""), 2000);
+      setTimeout(() => setCopyStatus(''), 2000);
     } catch (err) {
-      setError(`Failed to copy ${label} to clipboard`);
+      console.error('Failed to copy:', err);
     }
   };
 
-  const saveToHistory = (secretObject) => {
-    const newSecret = {
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
-      litActionCid,
-      secretObject
-    };
-    
-    const updatedHistory = [...encryptedHistory, newSecret];
-    setEncryptedHistory(updatedHistory);
-    localStorage.setItem('secretsHistory', JSON.stringify(updatedHistory));
-  };
+  const filteredSecrets = secrets.filter(secret => 
+    secret.litActionCid.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    JSON.stringify(secret.secretObject).toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const clearHistory = () => {
-    setEncryptedHistory([]);
-    localStorage.removeItem('secretsHistory');
-  };
-
-  const deleteHistoryItem = (id) => {
-    const updatedHistory = encryptedHistory.filter(item => item.id !== id);
-    setEncryptedHistory(updatedHistory);
-    localStorage.setItem('secretsHistory', JSON.stringify(updatedHistory));
-  };
-
-  const encryptKey = async (dataToEncrypt) => {
-    try {
-      setIsLoading(true);
-      setError("");
-      
-      const accessControlConditions = [
-        {
-          contractAddress: "ipfs://QmVhccY3ucrAsNx1LfGSMrYrBukDGKHgLtuCqygUzfTdTk",
-          standardContractType: "LitAction",
-          chain: "ethereum", 
-          method: "checkVal",
-          parameters: [litActionCid],
-          returnValueTest: {
-            comparator: "=",
-            value: "true",
-          },
-        },
-      ];
-
-      const { ciphertext, dataToEncryptHash } = await encryptString(
-        {
-          accessControlConditions,
-          dataToEncrypt,
-        },
-        litNodeClient
-      );
-      
-      const secretObject = {
-        encryptedData: ciphertext,
-        dataToEncryptHash
-      };
-
-      setCurrentSecret(secretObject);
-      saveToHistory(secretObject);
-
-    } catch (err) {
-      setError("Failed to encrypt: " + err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  async function decryptData(encryptedData, dataToEncryptHash) {
-    try {
-      if (!litNodeClient) {
-        throw new Error("LitNodeClient is not initialized.");
-      }
-  
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const walletAddress = await signer.getAddress();
-      const latestBlockhash = await litNodeClient.getLatestBlockhash();
-  
-      const authNeededCallback = async (params) => {
-        const toSign = await createSiweMessageWithRecaps({
-          uri: params.uri,
-          expiration: params.expiration,
-          resources: params.resourceAbilityRequests,
-          walletAddress: walletAddress,
-          nonce: latestBlockhash,
-          litNodeClient,
-        });
-  
-        return await generateAuthSig({
-          signer: signer,
-          toSign,
-        });
-      };
-  
-      const litResource = new LitAccessControlConditionResource("*");
-      const sessionSigs = await litNodeClient.getSessionSigs({
-        chain: "ethereum",
-        resourceAbilityRequests: [
-          {
-            resource: litResource,
-            ability: LitAbility.AccessControlConditionDecryption,
-          },
-        ],
-        authNeededCallback,
-      });
-  
-      const decryptedString = await LitJsSdk.decryptToString(
-        {
-          accessControlConditions: getAccessControlConditions(),
-          chain: "ethereum",
-          ciphertext: encryptedData,
-          dataToEncryptHash,
-          sessionSigs,
-        },
-        litNodeClient
-      );
-  
-      return decryptedString;
-    } catch (error) {
-      console.log("Failed to decrypt data:", error);
-      return null;
-    }
-  }
-  
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const litNodeClient = new LitNodeClient({
-          litNetwork: LitNetwork.DatilDev,
-          debug: false
-        });
-        await litNodeClient.connect();
-        setLitNodeClient(litNodeClient);
-      } catch (err) {
-        setError("Failed to initialize: " + err.message);
-      }
-    };
-
-    init();
-  }, []);
-
-  const ResultBox = ({ title, content, label }) => (
-    <div className="mb-4">
-      <div className="text-sm font-medium text-gray-900 mb-2">{title}</div>
-      <div className="relative bg-orange-50 p-4 rounded-lg break-all border border-orange-200">
-        <div className="pr-10 font-mono text-gray-900">{content}</div>
+  const SecretCard = ({ secret }) => (
+    <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+      <div className="flex justify-between items-start">
+        <div className="space-y-1">
+          <div className="text-sm text-gray-800">
+            Created on {new Date(secret.timestamp).toLocaleString()}
+          </div>
+        </div>
         <button
-          onClick={() => copyToClipboard(content, label)}
-          className="absolute top-2 right-2 p-2 hover:bg-orange-100 rounded"
-          title={`Copy ${label}`}
+          onClick={() => deleteSecret(secret.id)}
+          className="text-gray-800 hover:text-red-600 transition-colors duration-200"
+          title="Delete secret"
         >
-          <Copy className="h-4 w-4 text-gray-800" />
+          <Trash2 className="h-5 w-5" />
         </button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="text-sm font-medium text-gray-900">Lit Action CID</label>
+          <div className="mt-1 relative">
+            <div className="bg-gray-50 rounded p-3 pr-10 font-mono text-sm break-all text-gray-900">
+              {secret.litActionCid}
+            </div>
+            <button
+              onClick={() => copyToClipboard(secret.litActionCid, 'CID')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-800 hover:text-gray-900"
+            >
+              <Copy className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-gray-900">Secret Object</label>
+          <div className="mt-1 relative">
+            <pre className="bg-gray-50 rounded p-3 pr-10 font-mono text-sm break-all whitespace-pre-wrap text-gray-900">
+              {JSON.stringify(secret.secretObject, null, 2)}
+            </pre>
+            <button
+              onClick={() => copyToClipboard(JSON.stringify(secret.secretObject), 'secret object')}
+              className="absolute right-2 top-2 text-gray-800 hover:text-gray-900"
+            >
+              <Copy className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="bg-gray-200 inset-0 h-full w-full bg-[linear-gradient(to_right,#80808010_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]">
-      <header className="bg-black/9 backdrop-blur-sm fixed top-0 w-full z-50 shadow-sm" style={{
-        borderBottom:"0.1px solid #ffffff45"
-      }}>
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-blue-600 flex items-center gap-2">
-            {/* <LockIcon className="w-6 h-6 text-orange-600" /> */}
-            <Image src='./block.svg' height="40" width="40" alt="Block Image" style={{color:"orange"}}/>
-            Lit Secrets manager
-          </h1>
-          <div className='flex gap-2'>
-            <button className="text-white bg-[#0000ff] px-4 py-3 hover:bg-[#0000ff9e] rounded-md shadow-md hover:shadow-lg"
-            onClick={()=>{
-              router.push("/mySecrets");
-            }}
-            > My Secret</button>
-            <button className="text-white bg-[#0000ff] px-4 hover:bg-[#0000ff9e] rounded-md shadow-md hover:shadow-lg"
-            onClick={()=>{
-              router.push("/ai-agent");
-            }}
-            > Crypto AI</button>
-            <button className="text-white bg-[#0000ff] px-4 hover:bg-[#0000ff9e] rounded-md shadow-md hover:shadow-lg"
-            onClick={()=>{
-              router.push("/");
-            }}
-            > Home Page</button>
+    <div className="min-h-screen bg-gray-200 inset-0 h-full w-full bg-[linear-gradient(to_right,#80808010_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-gray-900">Secret Objects</h1>
+            <a 
+              href="/createSecrets"
+              className="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md transition-colors duration-200"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Create New Secret
+            </a>
           </div>
         </div>
       </header>
-      <div className="max-w-4xl pt-28 pb-20 mx-auto space-y-8">
-        <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-          <div className="bg-[#0000ffb3] px-6 py-4">
-            <h1 className="text-2xl font-bold text-white">Encrypt Secrets</h1>
-          </div>
 
-          <div className="p-6 space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Lit Action CID
-              </label>
-              <input
-                type="text"
-                placeholder="Enter Lit Action CID..."
-                value={litActionCid}
-                onChange={(e) => setLitActionCid(e.target.value)}
-                className="w-full p-3 border border-[#0000ff2b] rounded focus:ring-2 focus:ring-[#0000ffb3] focus:border-transparent outline-none text-gray-900"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Secret to Encrypt
-              </label>
-              <textarea
-                placeholder="Enter text to encrypt..."
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                className="w-full p-3 border border-[#0000ff2b] rounded focus:ring-2 focus:ring-[#0000ffb3] focus:border-transparent outline-none text-gray-900"
-                rows="3"
-              />
-            </div>
-
-            <button
-              onClick={() => encryptKey(inputText)}
-              disabled={!inputText || isLoading}
-              className={`w-full bg-[#0000ffb3] hover:bg-[#0000ffb3] text-white py-3 px-4 rounded transition-colors duration-200 font-medium ${
-                !inputText || isLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Processing...
-                </span>
-              ) : (
-                "Encrypt Secret"
-              )}
-            </button>
-
-            {error && (
-              <div className="p-4 bg-[#0000ffb3]/10 border border-[#0000ffb3]/30 rounded-lg text-red-700">
-                {error}
-              </div>
-            )}
-
-            {copyStatus && (
-              <div className="p-4 bg-[#0000ffb3]/10 border border-[#0000ffb3]/30 rounded-lg text-green-700">
-                {copyStatus}
-              </div>
-            )}
-
-            {currentSecret && (
-              <div className="space-y-4">
-                <div className="bg-[#0000ffb3]/70 p-4 rounded-lg border border-[#0000ffb3]">
-                  <h3 className="text-sm font-semibold text-white mb-2">Secret Object:</h3>
-                  <div className="relative">
-                    <pre className="font-mono text-sm text-white break-all whitespace-pre-wrap">
-                      {JSON.stringify(currentSecret, null, 2)}
-                    </pre>
-                    <button
-                      onClick={() => copyToClipboard(JSON.stringify(currentSecret), 'secret object')}
-                      className="absolute top-2 right-2 p-2 hover:bg-orange-100 rounded"
-                      title="Copy secret object"
-                    >
-                      <Copy className="h-4 w-4 text-white" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search secrets..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            />
+            <Search className="h-5 w-5 text-gray-800 absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
         </div>
 
-        {encryptedHistory.length > 0 && (
-          <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-            <div className="bg-[#0000ffb3] px-6 py-4 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-white">Encryption History</h2>
-              <button
-                onClick={clearHistory}
-                className="text-white hover:text-orange-100 transition-colors duration-200"
-                title="Clear all history"
-              >
-                <Trash2 className="h-5 w-5" color='orange'/>
-              </button>
-            </div>
-            <div className="p-6 space-y-6">
-              {encryptedHistory.map((item) => (
-                <div key={item.id} className="bg-[#0000ffb3]/10 p-4 rounded-lg border border-[#0000ffb3]/40 relative">
-                  <button
-                    onClick={() => deleteHistoryItem(item.id)}
-                    className="absolute top-2 right-2 text-orange-800 hover:text-orange-900 transition-colors duration-200"
-                    title="Delete this entry"
-                  >
-                    <Trash2 className="h-4 w-4" color='orange'/>
-                  </button>
-                  <div className="text-sm text-gray-900 mb-2 font-medium">
-                    {new Date(item.timestamp).toLocaleString()}
-                  </div>
-                  <div className="space-y-2">
-                    <div className="font-semibold text-gray-900">Lit Action CID:</div>
-                    <div className="font-mono text-sm text-gray-900 break-all bg-white p-2 rounded">
-                      {item.litActionCid}
-                    </div>
-                    <div className="font-semibold text-gray-900 mt-4">Secret Object:</div>
-                    <pre className="font-mono text-sm text-gray-900 break-all whitespace-pre-wrap bg-white p-3 rounded">
-                      {JSON.stringify(item.secretObject, null, 2)}
-                    </pre>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Copy Status Message */}
+        {copyStatus && (
+          <div className="fixed bottom-4 right-4 bg-black text-white px-4 py-2 rounded-md shadow-lg">
+            {copyStatus}
           </div>
         )}
-        <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-          <div className="bg-[#0000ffb3] px-6 py-4">
-            <h2 className="text-xl font-bold text-white">Decrypt Data</h2>
+
+        {/* Secrets Grid */}
+        {filteredSecrets.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+            {filteredSecrets.map((secret) => (
+              <SecretCard key={secret.id} secret={secret} />
+            ))}
           </div>
-          <div className="p-6 space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Encrypted Data
-              </label>
-              <textarea
-                placeholder="Enter encrypted data..."
-                value={encryptedData}
-                onChange={(e) => setEncryptedData(e.target.value)}
-                className="w-full p-3 border border-[#0000ffb3]/30 rounded focus:ring-1 focus:ring-[#0000ffb3] focus:border-transparent outline-none text-gray-900"
-                rows="3"
-              />
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-gray-900">
+              {searchTerm ? 'No secrets found matching your search.' : 'No secrets created yet.'}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Data to Encrypt Hash
-              </label>
-              <textarea
-                placeholder="Enter data to encrypt hash..."
-                value={dataToEncryptHash}
-                onChange={(e) => setDataToEncryptHash(e.target.value)}
-                className="w-full p-3 border border-[#0000ffb3]/30 rounded focus:ring-1 focus:ring-[#0000ffb3] focus:border-transparent outline-none text-gray-900"
-                rows="3"
-              />
-            </div>
-            <button
-              onClick={async () => {
-                const decryptedData = await decryptData(encryptedData, dataToEncryptHash);
-                if (decryptedData) {
-                  setDecryptedData(decryptedData);
-                } else {
-                  setError("Failed to decrypt data");
-                }
-              }}
-              disabled={!encryptedData || !dataToEncryptHash || isLoading}
-              className={`w-full bg-[#0000ffb3] hover:bg-[#0000ffb3] text-white py-3 px-4 rounded transition-colors duration-200 font-medium ${
-                !encryptedData || !dataToEncryptHash || isLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+            <a
+              href="/createSecrets"
+              className="inline-flex items-center mt-4 text-orange-600 hover:text-orange-700"
             >
-              {isLoading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Processing...
-                </span>
-              ) : (
-                "Decrypt Data"
-              )}
-            </button>
-            {decryptedData && (
-              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200 mt-4">
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Decrypted Data:</h3>
-                <pre className="font-mono text-sm text-gray-900 break-all whitespace-pre-wrap">
-                  {decryptedData}
-                </pre>
-              </div>
-            )}
+              <Plus className="h-5 w-5 mr-1" />
+              Create your first secret
+            </a>
           </div>
-        </div>
-      </div>
+        )}
+      </main>
     </div>
   );
-}
+};
+
+export default SecretsListPage;

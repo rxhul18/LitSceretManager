@@ -1,11 +1,9 @@
 "use client"
 import React, { useState, useEffect } from 'react'
-import { LitNodeClient, encryptString } from "@lit-protocol/lit-node-client";
-import { LitNetwork } from "@lit-protocol/constants";
 import { Copy, Trash2 } from "lucide-react";
+import { encryptApiKey, decryptApiKey } from "../../config/decrypAPI";
 
 export default function Secrets() {
-  const [litNodeClient, setLitNodeClient] = useState();
   const [currentSecret, setCurrentSecret] = useState(null);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +11,10 @@ export default function Secrets() {
   const [copyStatus, setCopyStatus] = useState("");
   const [litActionCid, setLitActionCid] = useState("");
   const [encryptedHistory, setEncryptedHistory] = useState([]);
+  const [encryptedData, setEncryptedData] = useState("");
+  const [decryptedData, setDecryptedData] = useState(""); 
+  const [ciphertext, setCiphertext] = useState("");
+  const [dataToEncryptHash, setDataToEncryptHash] = useState("");
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('secretsHistory');
@@ -55,64 +57,38 @@ export default function Secrets() {
     localStorage.setItem('secretsHistory', JSON.stringify(updatedHistory));
   };
 
-  const encryptKey = async (dataToEncrypt) => {
+  const encryption = async (text) => {
+    setIsLoading(true);
+    setError("");
     try {
-      setIsLoading(true);
-      setError("");
-      
-      const accessControlConditions = [
-        {
-          contractAddress: "ipfs://QmVhccY3ucrAsNx1LfGSMrYrBukDGKHgLtuCqygUzfTdTk",
-          standardContractType: "LitAction",
-          chain: "ethereum", 
-          method: "checkVal",
-          parameters: [litActionCid],
-          returnValueTest: {
-            comparator: "=",
-            value: "true",
-          },
-        },
-      ];
-
-      const { ciphertext, dataToEncryptHash } = await encryptString(
-        {
-          accessControlConditions,
-          dataToEncrypt,
-        },
-        litNodeClient
-      );
-      
-      const secretObject = {
-        encryptedData: ciphertext,
-        dataToEncryptHash
-      };
-
-      setCurrentSecret(secretObject);
-      saveToHistory(secretObject);
-
+      const {ciphertext, dataToEncryptHash} = await encryptApiKey(text);
+      setCiphertext(ciphertext);
+      setDataToEncryptHash(dataToEncryptHash);
+      setCurrentSecret({ciphertext, dataToEncryptHash});
+      saveToHistory({ciphertext, dataToEncryptHash});
     } catch (err) {
-      setError("Failed to encrypt: " + err.message);
+      setError("Failed to encrypt secret: " + err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const litNodeClient = new LitNodeClient({
-          litNetwork: LitNetwork.DatilDev,
-          debug: false
-        });
-        await litNodeClient.connect();
-        setLitNodeClient(litNodeClient);
-      } catch (err) {
-        setError("Failed to initialize: " + err.message);
-      }
-    };
+  const decryptData = async (encryptedData, dataToEncryptHash) => {
+    setIsLoading(true);
+    setError("");
+    try {
+      alert("decrypting data", encryptedData, dataToEncryptHash);
+      const decryptedData = await decryptApiKey(encryptedData, dataToEncryptHash);
+      return decryptedData;
+    } catch (err) {
+      setError("Failed to decrypt data: " + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    init();
-  }, []);
+
+
 
   const ResultBox = ({ title, content, label }) => (
     <div className="mb-4">
@@ -131,7 +107,7 @@ export default function Secrets() {
   );
 
   return (
-    <div className="min-h-screen bg-orange-50 p-8">
+    <div className="min-h-screen bg-gray-200 inset-0 h-full w-full bg-[linear-gradient(to_right,#80808010_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px] p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
           <div className="bg-orange-600 px-6 py-4">
@@ -166,7 +142,7 @@ export default function Secrets() {
             </div>
 
             <button
-              onClick={() => encryptKey(inputText)}
+              onClick={() => encryption(inputText)}
               disabled={!inputText || isLoading}
               className={`w-full bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded transition-colors duration-200 font-medium ${
                 !inputText || isLoading ? 'opacity-50 cursor-not-allowed' : ''
@@ -259,6 +235,71 @@ export default function Secrets() {
             </div>
           </div>
         )}
+        <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+          <div className="bg-orange-600 px-6 py-4">
+            <h2 className="text-xl font-bold text-white">Decrypt Data</h2>
+          </div>
+          <div className="p-6 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Encrypted Data
+              </label>
+              <textarea
+                placeholder="Enter encrypted data..."
+                value={encryptedData}
+                onChange={(e) => setEncryptedData(e.target.value)}
+                className="w-full p-3 border border-orange-200 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-gray-900"
+                rows="3"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Data to Encrypt Hash
+              </label>
+              <textarea
+                placeholder="Enter data to encrypt hash..."
+                value={dataToEncryptHash}
+                onChange={(e) => setDataToEncryptHash(e.target.value)}
+                className="w-full p-3 border border-orange-200 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-gray-900"
+                rows="3"
+              />
+            </div>
+            <button
+              onClick={async () => {
+                const decryptedData = await decryptData(encryptedData, dataToEncryptHash);
+                if (decryptedData) {
+                  setDecryptedData(decryptedData);
+                } else {
+                  setError("Failed to decrypt data");
+                }
+              }}
+              disabled={!encryptedData || !dataToEncryptHash || isLoading}
+              className={`w-full bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded transition-colors duration-200 font-medium ${
+                !encryptedData || !dataToEncryptHash || isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                "Decrypt Data"
+              )}
+            </button>
+            {decryptedData && (
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200 mt-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">Decrypted Data:</h3>
+                <pre className="font-mono text-sm text-gray-900 break-all whitespace-pre-wrap">
+                  {decryptedData}
+                </pre>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
