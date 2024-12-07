@@ -7,6 +7,7 @@ import { ethers } from "ethers";
 import { LitAccessControlConditionResource, LitAbility, createSiweMessageWithRecaps, generateAuthSig } from "@lit-protocol/auth-helpers";
 import * as LitJsSdk from "@lit-protocol/lit-node-client";
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function Secrets() {
   const [litNodeClient, setLitNodeClient] = useState();
@@ -35,6 +36,7 @@ export default function Secrets() {
       },
     ];
   }  
+  const router = useRouter();
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('secretsHistory');
@@ -211,8 +213,8 @@ export default function Secrets() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 dark:bg-white p-8">
-      <header className="bg-black/50 backdrop-blur-sm fixed top-0 w-full z-50 shadow-sm" style={{
+    <div className="bg-gray-200 inset-0 h-full w-full bg-[linear-gradient(to_right,#80808010_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]">
+      <header className="bg-black/9 backdrop-blur-sm fixed top-0 w-full z-50 shadow-sm" style={{
         borderBottom:"0.1px solid #ffffff45"
       }}>
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -221,12 +223,28 @@ export default function Secrets() {
             <Image src='./block.svg' height="40" width="40" alt="Block Image" style={{color:"orange"}}/>
             Lit Secrets manager
           </h1>
-          {/* <ConnectButton className="text-white rounded-md shadow-md hover:shadow-lg" /> */}
+          <div className='flex gap-2'>
+            <button className="text-white bg-[#0000ff] px-4 py-3 hover:bg-[#0000ff9e] rounded-md shadow-md hover:shadow-lg"
+            onClick={()=>{
+              router.push("/mySecrets");
+            }}
+            > My Secret</button>
+            <button className="text-white bg-[#0000ff] px-4 hover:bg-[#0000ff9e] rounded-md shadow-md hover:shadow-lg"
+            onClick={()=>{
+              router.push("/ai-agent");
+            }}
+            > Crypto AI</button>
+            <button className="text-white bg-[#0000ff] px-4 hover:bg-[#0000ff9e] rounded-md shadow-md hover:shadow-lg"
+            onClick={()=>{
+              router.push("/");
+            }}
+            > Home Page</button>
+          </div>
         </div>
       </header>
-      <div className="max-w-4xl mt-20 mx-auto space-y-8">
+      <div className="max-w-4xl pt-28 pb-20 mx-auto space-y-8">
         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-          <div className="bg-orange-600 px-6 py-4">
+          <div className="bg-[#0000ffb3] px-6 py-4">
             <h1 className="text-2xl font-bold text-white">Encrypt Secrets</h1>
           </div>
 
@@ -240,7 +258,7 @@ export default function Secrets() {
                 placeholder="Enter Lit Action CID..."
                 value={litActionCid}
                 onChange={(e) => setLitActionCid(e.target.value)}
-                className="w-full p-3 border border-orange-200 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-gray-900"
+                className="w-full p-3 border border-[#0000ff2b] rounded focus:ring-2 focus:ring-[#0000ffb3] focus:border-transparent outline-none text-gray-900"
               />
             </div>
 
@@ -252,7 +270,7 @@ export default function Secrets() {
                 placeholder="Enter text to encrypt..."
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                className="w-full p-3 border border-orange-200 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-gray-900"
+                className="w-full p-3 border border-[#0000ff2b] rounded focus:ring-2 focus:ring-[#0000ffb3] focus:border-transparent outline-none text-gray-900"
                 rows="3"
               />
             </div>
@@ -260,7 +278,7 @@ export default function Secrets() {
             <button
               onClick={() => encryptKey(inputText)}
               disabled={!inputText || isLoading}
-              className={`w-full bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded transition-colors duration-200 font-medium ${
+              className={`w-full bg-[#0000ffb3] hover:bg-[#0000ffb3] text-white py-3 px-4 rounded transition-colors duration-200 font-medium ${
                 !inputText || isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
@@ -278,23 +296,23 @@ export default function Secrets() {
             </button>
 
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              <div className="p-4 bg-[#0000ffb3]/10 border border-[#0000ffb3]/30 rounded-lg text-red-700">
                 {error}
               </div>
             )}
 
             {copyStatus && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+              <div className="p-4 bg-[#0000ffb3]/10 border border-[#0000ffb3]/30 rounded-lg text-green-700">
                 {copyStatus}
               </div>
             )}
 
             {currentSecret && (
               <div className="space-y-4">
-                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Secret Object:</h3>
+                <div className="bg-[#0000ffb3]/70 p-4 rounded-lg border border-[#0000ffb3]">
+                  <h3 className="text-sm font-semibold text-white mb-2">Secret Object:</h3>
                   <div className="relative">
-                    <pre className="font-mono text-sm text-gray-900 break-all whitespace-pre-wrap">
+                    <pre className="font-mono text-sm text-white break-all whitespace-pre-wrap">
                       {JSON.stringify(currentSecret, null, 2)}
                     </pre>
                     <button
@@ -302,7 +320,7 @@ export default function Secrets() {
                       className="absolute top-2 right-2 p-2 hover:bg-orange-100 rounded"
                       title="Copy secret object"
                     >
-                      <Copy className="h-4 w-4 text-gray-800" />
+                      <Copy className="h-4 w-4 text-white" />
                     </button>
                   </div>
                 </div>
@@ -313,25 +331,25 @@ export default function Secrets() {
 
         {encryptedHistory.length > 0 && (
           <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-            <div className="bg-orange-600 px-6 py-4 flex justify-between items-center">
+            <div className="bg-[#0000ffb3] px-6 py-4 flex justify-between items-center">
               <h2 className="text-xl font-bold text-white">Encryption History</h2>
               <button
                 onClick={clearHistory}
                 className="text-white hover:text-orange-100 transition-colors duration-200"
                 title="Clear all history"
               >
-                <Trash2 className="h-5 w-5" />
+                <Trash2 className="h-5 w-5" color='orange'/>
               </button>
             </div>
             <div className="p-6 space-y-6">
               {encryptedHistory.map((item) => (
-                <div key={item.id} className="bg-orange-50 p-4 rounded-lg border border-orange-200 relative">
+                <div key={item.id} className="bg-[#0000ffb3]/10 p-4 rounded-lg border border-[#0000ffb3]/40 relative">
                   <button
                     onClick={() => deleteHistoryItem(item.id)}
                     className="absolute top-2 right-2 text-orange-800 hover:text-orange-900 transition-colors duration-200"
                     title="Delete this entry"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4" color='orange'/>
                   </button>
                   <div className="text-sm text-gray-900 mb-2 font-medium">
                     {new Date(item.timestamp).toLocaleString()}
@@ -352,7 +370,7 @@ export default function Secrets() {
           </div>
         )}
         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-          <div className="bg-orange-600 px-6 py-4">
+          <div className="bg-[#0000ffb3] px-6 py-4">
             <h2 className="text-xl font-bold text-white">Decrypt Data</h2>
           </div>
           <div className="p-6 space-y-6">
@@ -364,7 +382,7 @@ export default function Secrets() {
                 placeholder="Enter encrypted data..."
                 value={encryptedData}
                 onChange={(e) => setEncryptedData(e.target.value)}
-                className="w-full p-3 border border-orange-200 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-gray-900"
+                className="w-full p-3 border border-[#0000ffb3]/30 rounded focus:ring-1 focus:ring-[#0000ffb3] focus:border-transparent outline-none text-gray-900"
                 rows="3"
               />
             </div>
@@ -376,7 +394,7 @@ export default function Secrets() {
                 placeholder="Enter data to encrypt hash..."
                 value={dataToEncryptHash}
                 onChange={(e) => setDataToEncryptHash(e.target.value)}
-                className="w-full p-3 border border-orange-200 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-gray-900"
+                className="w-full p-3 border border-[#0000ffb3]/30 rounded focus:ring-1 focus:ring-[#0000ffb3] focus:border-transparent outline-none text-gray-900"
                 rows="3"
               />
             </div>
@@ -390,7 +408,7 @@ export default function Secrets() {
                 }
               }}
               disabled={!encryptedData || !dataToEncryptHash || isLoading}
-              className={`w-full bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded transition-colors duration-200 font-medium ${
+              className={`w-full bg-[#0000ffb3] hover:bg-[#0000ffb3] text-white py-3 px-4 rounded transition-colors duration-200 font-medium ${
                 !encryptedData || !dataToEncryptHash || isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
