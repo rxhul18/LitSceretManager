@@ -98,17 +98,17 @@ export default function LandingPage() {
     { 
       title: "Encrypted Storage", 
       description: "Your secrets are encrypted using Lit Protocol's advanced cryptographic network. Each secret is encrypted with unique access conditions that you define.", 
-      icon: <LockIcon className="w-8 h-8 mb-4 text-orange-600" /> 
+      icon: <LockIcon className="w-8 h-8 mb-4 text-orange-600" color='#ea580b'/> 
     },
     { 
       title: "Decentralized Security", 
       description: "Leverage Lit Protocol's decentralized node network for encryption and access control. No single point of failure and no central authority.", 
-      icon: <ShieldIcon className="w-8 h-8 mb-4 text-orange-600" /> 
+      icon: <ShieldIcon className="w-8 h-8 mb-4 text-orange-600" color='#ea580b'/> 
     },
     { 
       title: "Programmable Access", 
       description: "Define complex access conditions using Lit Actions. Control who can access your secrets based on wallet addresses, token ownership, or custom logic.", 
-      icon: <KeyIcon className="w-8 h-8 mb-4 text-orange-600" /> 
+      icon: <KeyIcon className="w-8 h-8 mb-4 text-orange-600" color='#ea580b'/> 
     },
   ];
 
@@ -143,7 +143,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 dark:bg-white">
+    <div className="bg-zinc-900 dark:bg-white inset-0 h-full w-full bg-[linear-gradient(to_right,#80808010_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]">
       <header className="bg-black/50 backdrop-blur-sm fixed top-0 w-full z-50 shadow-sm" style={{
         borderBottom:"0.1px solid #ffffff45"
       }}>
@@ -151,13 +151,13 @@ export default function LandingPage() {
           <h1 className="text-3xl font-bold text-blue-600 flex items-center gap-2">
             {/* <LockIcon className="w-6 h-6 text-orange-600" /> */}
             <Image src='./block.svg' height="40" width="40" alt="Block Image" style={{color:"orange"}}/>
-            Secrets manager
+            Lit Secrets manager
           </h1>
-          <ConnectButton className="text-white rounded-lg shadow-md hover:shadow-lg" />
+          <ConnectButton className="text-white rounded-md shadow-md hover:shadow-lg" />
         </div>
       </header>
 
-      <main className="container mx-auto px-4 pt-40 pb-12">
+      <main className="container mx-auto px-4 pt-36 pb-12">
         <section className="text-center mb-20 max-w-4xl mx-auto">
           <h2 className="text-5xl font-bold mb-6 text-blue-600 leading-tight">
             Secure Your Secrets with{" "}
@@ -180,18 +180,18 @@ export default function LandingPage() {
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+              className="bg-[#0000ff]/85 p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
             >
               <div className="flex flex-col items-center text-center">
                 {feature.icon}
-                <h3 className="text-xl font-semibold mb-3 text-gray-900">{feature.title}</h3>
-                <p className="text-gray-700 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-3 text-white">{feature.title}</h3>
+                <p className="text-white/80 leading-relaxed">{feature.description}</p>
               </div>
             </div>
           ))}
         </section>
 
-        <section className="grid md:grid-cols-2 gap-8 mb-20">
+        {/* <section className="grid md:grid-cols-2 gap-8 mb-20">
           <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
             <h3 className="text-2xl font-bold mb-6 text-gray-900">Why Choose Lit Protocol?</h3>
             <ul className="space-y-6">
@@ -221,18 +221,18 @@ export default function LandingPage() {
               ))}
             </ul>
           </div>
-        </section>
+        </section> */}
 
-        <section className="bg-orange-600 text-white p-12 rounded-xl shadow-xl mb-20">
+        <section className="bg-[#0000ff]/90 p-12 rounded-xl shadow-xl mb-20">
           <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
-            <p className="text-lg mb-8 opacity-90">
+            <h2 className="text-3xl font-bold mb-4 text-white/85">Ready to Get Started?</h2>
+            <p className="text-lg mb-8 opacity-90 text-white/80">
               Join the growing community of developers and organizations securing their secrets with Lit Protocol.
             </p>
             <button 
               onClick={connectWallet}
               disabled={isConnecting}
-              className={`px-8 py-4 bg-white text-orange-600 rounded-lg hover:bg-gray-100 transition-all duration-300 font-semibold shadow-md hover:shadow-lg ${
+              className={`px-8 py-4 bg-orange-600 text-white rounded-lg hover:bg-white hover:text-orange-600 transition-all duration-300 font-semibold shadow-md hover:shadow-lg ${
                 isConnecting ? 'cursor-not-allowed opacity-80' : ''
               }`}
             >
@@ -249,14 +249,14 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="bg-white shadow-md mt-auto">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center text-gray-700">
-            <p className="mb-2 flex items-center justify-center gap-2">
+      <footer className="bg-black/50 shadow-md mt-auto">
+        <div className="container mx-auto px-4 py-4">
+          <div className="text-center text-white">
+            <p className="mb-2 flex text-white items-center justify-center gap-2">
               <ShieldIcon className="w-4 h-4 text-orange-600" />
               Built on Lit Protocol
             </p>
-            <p className="text-sm">© 2024 Lit Secrets. All rights reserved.</p>
+            <p className="text-sm text-white">© 2024 Lit Secrets. All rights reserved.</p>
           </div>
         </div>
       </footer>

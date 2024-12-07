@@ -6,6 +6,7 @@ import { Copy, Trash2 } from "lucide-react";
 import { ethers } from "ethers";
 import { LitAccessControlConditionResource, LitAbility, createSiweMessageWithRecaps, generateAuthSig } from "@lit-protocol/auth-helpers";
 import * as LitJsSdk from "@lit-protocol/lit-node-client";
+import Image from 'next/image';
 
 export default function Secrets() {
   const [litNodeClient, setLitNodeClient] = useState();
@@ -211,7 +212,19 @@ export default function Secrets() {
 
   return (
     <div className="min-h-screen bg-zinc-950 dark:bg-white p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <header className="bg-black/50 backdrop-blur-sm fixed top-0 w-full z-50 shadow-sm" style={{
+        borderBottom:"0.1px solid #ffffff45"
+      }}>
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-blue-600 flex items-center gap-2">
+            {/* <LockIcon className="w-6 h-6 text-orange-600" /> */}
+            <Image src='./block.svg' height="40" width="40" alt="Block Image" style={{color:"orange"}}/>
+            Lit Secrets manager
+          </h1>
+          {/* <ConnectButton className="text-white rounded-md shadow-md hover:shadow-lg" /> */}
+        </div>
+      </header>
+      <div className="max-w-4xl mt-20 mx-auto space-y-8">
         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
           <div className="bg-orange-600 px-6 py-4">
             <h1 className="text-2xl font-bold text-white">Encrypt Secrets</h1>
