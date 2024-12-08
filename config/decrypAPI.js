@@ -125,7 +125,7 @@ export const decryptApiKey = async (
   ciphertext, 
   dataToEncryptHash,
   accessControlConditions = DEFAULT_ACCESS_CONTROL_CONDITIONS,
-  alchemyUrl = "https://yellowstone-explorer.litprotocol.com/api/v2/blocks?type=block%20%7C%20uncle%20%7C%2",
+  alchemyUrl = "https://api-sepolia.etherscan.io/api?module=block&action=getblockreward&blockno=1090932&apikey=QN26UDRN7GCJ2QMYF97WGIHTN7WUGGKCVA",
 ) => {
   let litNodeClient;
 
@@ -220,8 +220,7 @@ export const decryptApiKey = async (
         jsParams: {
           accessControlConditions,
           ciphertext,
-          dataToEncryptHash,
-          alchemyUrl,
+          dataToEncryptHash
         },
     });
     console.log("Lit action signatures:", litActionSignatures);
