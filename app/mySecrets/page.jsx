@@ -1,11 +1,15 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Copy, Trash2 } from "lucide-react";
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const SecretsListPage = () => {
   const [secrets, setSecrets] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
+
+  const router = useRouter();
   
   useEffect(() => {
     const savedSecrets = localStorage.getItem('secretsHistory');
@@ -56,7 +60,7 @@ const SecretsListPage = () => {
         <div>
           <label className="text-sm font-medium text-gray-900">Lit Action CID</label>
           <div className="mt-1 relative">
-            <div className="bg-gray-50 rounded p-3 pr-10 font-mono text-sm break-all text-gray-900">
+            <div className="bg-[#0000ffb3]/10 border-[#0000ffb3] rounded p-3 pr-10 font-mono text-sm break-all text-gray-900">
               {secret.litActionCid}
             </div>
             <button
@@ -71,7 +75,7 @@ const SecretsListPage = () => {
         <div>
           <label className="text-sm font-medium text-gray-900">Secret Object</label>
           <div className="mt-1 relative">
-            <pre className="bg-gray-50 rounded p-3 pr-10 font-mono text-sm break-all whitespace-pre-wrap text-gray-900">
+            <pre className="bg-[#0000ffb3]/10 rounded p-3 pr-10 font-mono text-sm break-all whitespace-pre-wrap text-gray-900">
               {JSON.stringify(secret.secretObject, null, 2)}
             </pre>
             <button
@@ -89,7 +93,7 @@ const SecretsListPage = () => {
   return (
     <div className="min-h-screen bg-gray-200 inset-0 h-full w-full bg-[linear-gradient(to_right,#80808010_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]">
       {/* Header */}
-      <header className="bg-white shadow">
+      {/* <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Secret Objects</h1>
@@ -102,10 +106,40 @@ const SecretsListPage = () => {
             </a>
           </div>
         </div>
+      </header> */}
+      <header className="bg-black/9 backdrop-blur-sm fixed top-0 w-full z-50 shadow-sm" style={{
+        borderBottom:"0.1px solid #ffffff45"
+      }}>
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-blue-600 flex items-center gap-2">
+            {/* <LockIcon className="w-6 h-6 text-orange-600" /> */}
+            <Image src='./block.svg' height="40" width="40" alt="Block Image" style={{color:"orange"}}/>
+            Lit Secrets manager
+          </h1>
+          <div className='flex gap-2'>
+            <button className="text-white bg-[#0000ff] px-5 py-2 hover:bg-[#0000ff9e] rounded-md shadow-md hover:shadow-lg"
+            onClick={()=>{
+              router.push("/ai-agent");
+            }}
+            > Crypto AI</button>
+            <button className="text-white bg-[#0000ff] px-5 py-2 hover:bg-[#0000ff9e] rounded-md shadow-md hover:shadow-lg"
+            onClick={()=>{
+              router.push("/");
+            }}
+            > Home </button>
+            <a
+              href="/createSecrets"
+              className="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md transition-colors duration-200"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Create New Secret
+            </a>
+          </div>
+        </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
