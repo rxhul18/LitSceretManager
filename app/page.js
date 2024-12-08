@@ -98,20 +98,20 @@ export default function LandingPage() {
 
   const features = [
     { 
-      title: "Encrypted Storage", 
-      description: "Your secrets are encrypted using Lit Protocol's advanced cryptographic network. Each secret is encrypted with unique access conditions that you define.", 
-      icon: <LockIcon className="w-8 h-8 mb-4 text-orange-600" color='#ea580b'/> 
+      title: "Custom Access Control", 
+      description: "Configure dynamic access conditions tailored to your needs, using wallet integrations, token ownership, or your custom logic.", 
+      icon: <KeyIcon className="w-8 h-8 mb-4 text-orange-600" color='#ea580b'/> 
     },
     { 
-      title: "Decentralized Security", 
-      description: "Leverage Lit Protocol's decentralized node network for encryption and access control. No single point of failure and no central authority.", 
+      title: "Decentralized Safety", 
+      description: "Experience robust security with a decentralized network, eliminating single points of failure and ensuring your data is always accessible and safe.", 
       icon: <ShieldIcon className="w-8 h-8 mb-4 text-orange-600" color='#ea580b'/> 
     },
     { 
-      title: "Programmable Access", 
-      description: "Define complex access conditions using Lit Actions. Control who can access your secrets based on wallet addresses, token ownership, or custom logic.", 
-      icon: <KeyIcon className="w-8 h-8 mb-4 text-orange-600" color='#ea580b'/> 
-    },
+      title: "Secure Storage", 
+      description: "Protect your data with advanced cryptographic methods. Each entry is encrypted with tailored access policies defined by you.", 
+      icon: <LockIcon className="w-8 h-8 mb-4 text-orange-600" color='#ea580b'/> 
+    }
   ];
 
   const whyChooseItems = [
@@ -129,20 +129,20 @@ export default function LandingPage() {
     }
   ];
 
-  const useCases = [
-    {
-      title: "Secure Key Management",
-      description: "Store API keys, private keys, and sensitive credentials with programmatic access control."
-    },
-    {
-      title: "DAO Governance",
-      description: "Manage privileged access to DAO resources and sensitive organizational information."
-    },
-    {
-      title: "DApp Security",
-      description: "Protect user data and application secrets in decentralized applications."
-    }
-  ];
+  // const useCases = [
+  //   {
+  //     title: "Secure Key Management",
+  //     description: "Store API keys, private keys, and sensitive credentials with programmatic access control."
+  //   },
+  //   {
+  //     title: "DAO Governance",
+  //     description: "Manage privileged access to DAO resources and sensitive organizational information."
+  //   },
+  //   {
+  //     title: "DApp Security",
+  //     description: "Protect user data and application secrets in decentralized applications."
+  //   }
+  // ];
 
   return (
     <div className="bg-gray-200 inset-0 h-full w-full bg-[linear-gradient(to_right,#80808010_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]">
@@ -174,7 +174,7 @@ export default function LandingPage() {
       <main className="container mx-auto px-4 pt-36 pb-12">
         <section className="text-center mb-20 max-w-4xl mx-auto">
           <h2 className="text-5xl font-bold mb-6 text-blue-600 leading-tight">
-            Secure Your Secrets with{" "}
+            Protect Your Key with{" "}
             <span className="text-orange-600/90 relative">
               Lit Protocol
               <span className="absolute bottom-0 left-0 w-full h-1 bg-orange-600/20"></span>
@@ -182,7 +182,7 @@ export default function LandingPage() {
           </h2>
           <p className="text-xl mb-8 text-gray-800/75 leading-relaxed">
             The decentralized secret manager powered by Lit Protocol encryption network.
-            Store, manage, and share your sensitive data with confidence.
+            Securely store, organize, and share your sensitive information with ease.
           </p>
           <ConnectButton 
             className="text-white rounded-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1" 
@@ -210,7 +210,7 @@ export default function LandingPage() {
           <div className="text-center max-w-2xl mx-auto">
             <h2 className="text-3xl font-bold mb-4 text-white/85">Ready to Get Started?</h2>
             <p className="text-lg mb-8 opacity-90 text-white/80">
-              Join the growing community of developers and organizations securing their secrets with Lit Protocol.
+              Secure your sensitive data effortlessly with LIT Protocol. Collaborate, innovate, and trust in the power of decentralized encryption
             </p>
             <button 
               onClick={connectWallet}

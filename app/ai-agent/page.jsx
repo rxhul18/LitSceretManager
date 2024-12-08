@@ -4,6 +4,8 @@ import LitJsSdk from 'lit-js-sdk';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 // Registering chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -67,6 +69,8 @@ const AIResponse = () => {
     const [response, setResponse] = useState('');
     const [loading, setLoading] = useState(false);
     const [chatHistory, setChatHistory] = useState([]);
+
+    const router = useRouter();
 
     // Handle user query
     const handleQuery = async () => {
@@ -187,36 +191,88 @@ const AIResponse = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center p-4 bg-gray-100 min-h-screen">
-            <h1 className="text-4xl font-bold text-center mb-6">Chat with AI Agent</h1>
-            <div className="w-full max-w-3xl bg-white p-6 rounded-lg shadow-lg overflow-hidden">
-                <div className="space-y-4 h-[400px] overflow-y-auto mb-4 p-4 bg-gray-50 rounded-lg">
+        <div className="flex flex-col items-center justify-center p-4 bg-gray-100 min-h-screen pt-24">
+            <header className="bg-black/9 backdrop-blur-sm fixed top-0 w-full z-50 shadow-sm" style={{
+                borderBottom:"0.1px solid #ffffff45"
+            }}>
+                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+                <h1 className="text-3xl font-bold text-blue-600 flex items-center gap-2">
+                    {/* <LockIcon className="w-6 h-6 text-orange-600" /> */}
+                    <Image src='./block.svg' height="40" width="40" alt="Block Image" style={{color:"orange"}}/>
+                    Lit Secrets manager
+                </h1>
+                <div className='flex gap-2'>
+                    <button className="text-white bg-[#0000ff] px-5 py-2   hover:bg-[#0000ff9e] rounded-md shadow-md hover:shadow-lg"
+                    onClick={()=>{
+                    router.push("/mySecrets");
+                    }}
+                    > My Secret</button>
+                    <button className="text-white bg-[#0000ff] px-5 py-2 hover:bg-[#0000ff9e] rounded-md shadow-md hover:shadow-lg"
+                    onClick={()=>{
+                    router.push("/");
+                    }}
+                    > Home </button>
+                </div>
+                </div>
+            </header>
+            <h1 className="text-4xl font-bold text-center mb-6 text-[#0000ffb3]">Chat with AI Agent</h1>
+            <div className="w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-100">
+                {/* Chat History Container */}
+                <div className="space-y-6 h-[500px] overflow-y-auto mb-6 p-6 bg-gradient-to-b from-gray-50 to-white">
                     {chatHistory.map((msg, index) => (
-                        <div key={index} className={`text-${msg.sender === 'user' ? 'right' : 'left'}`}>
+                        <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                             <div
-                                className={`inline-block px-4 py-2 rounded-lg max-w-[80%] ${msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}
+                                className={`relative px-6 py-4 rounded-2xl max-w-[80%] ${
+                                    msg.sender === 'user' 
+                                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-black shadow-blue-100'
+                                        : 'bg-gray-100 text-gray-800 shadow-gray-100'
+                                } shadow-lg`}
                             >
-                                {msg.text}
+                                <div className="text-sm md:text-base leading-relaxed text-black">
+                                    {msg.text}
+                                </div>
+                                <div 
+                                    className={`absolute bottom-0 ${
+                                        msg.sender === 'user' ? 'right-0' : 'left-0'
+                                    } transform translate-y-1/2 w-4 h-4 rotate-45 ${
+                                        msg.sender === 'user' ? 'bg-blue-600' : 'bg-gray-100'
+                                    }`}
+                                />
                             </div>
                         </div>
                     ))}
-                    {loading && <div className="text-center text-gray-500">Loading...</div>}
-                    {response && !loading && <div className="text-center text-gray-700 mt-2">{response}</div>}
+                    {loading && (
+                        <div className="flex justify-center">
+                            <div className="animate-pulse flex space-x-2">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                            </div>
+                        </div>
+                    )}
+                    {response && !loading && (
+                        <div className="text-center text-gray-600 italic">{response}</div>
+                    )}
                 </div>
-                <div className="flex flex-col items-center">
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Ask me anything..."
-                        className="w-full md:w-4/5 p-3 text-lg mb-4 border rounded-md border-gray-300"
-                    />
-                    <button
-                        onClick={handleQuery}
-                        className="w-full md:w-auto p-3 px-8 text-lg cursor-pointer bg-blue-500 text-white rounded-md"
-                    >
-                        Ask
-                    </button>
+
+                {/* Input Container */}
+                <div className="p-6 bg-white border-t border-gray-100">
+                    <div className="flex space-x-4">
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Ask me anything..."
+                            className="flex-1 p-4 text-gray-700 bg-gray-50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            onKeyPress={(e) => e.key === 'Enter' && handleQuery()}
+                        />
+                        <button
+                            onClick={handleQuery}
+                            className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg"
+                        >
+                            Send
+                        </button>
+                    </div>
                 </div>
             </div>
             <CryptoDashboard />
@@ -307,15 +363,15 @@ const CryptoDashboard = () => {
         <div className="p-8">
             <h1 className="text-3xl font-semibold mb-8 text-center">Crypto Dashboard</h1>
             <div className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">Market Overview</h2>
+                <h2 className="text-2xl font-semibold mb-4 text-black">Market Overview</h2>
                 {loading ? (
                     <p className="text-xl text-gray-500 text-center">Loading...</p>
                 ) : (
                     <div className="flex flex-wrap justify-center">
                         {cryptoData.map(coin => (
                             <div key={coin.id} className="m-4 p-6 border rounded-lg shadow-md w-72 bg-gray-100">
-                                <h3 className="text-xl font-bold">{coin.name}</h3>
-                                <p className="text-lg">Price: ${coin.current_price}</p>
+                                <h3 className="text-xl text-black font-bold">{coin.name}</h3>
+                                <p className="text-lg text-black">Price: ${coin.current_price}</p>
                                 <p className="text-lg text-green-500">24h Change: {coin.price_change_percentage_24h}%</p>
                             </div>
                         ))}
@@ -323,12 +379,12 @@ const CryptoDashboard = () => {
                 )}
             </div>
             <div className="mb-8">
-                <h2 className="text-2xl font-semibold mb-4">Top Gainers (24h)</h2>
+                <h2 className="text-2xl font-semibold mb-4 text-black">Top Gainers (24h)</h2>
                 <div className="flex flex-wrap justify-center">
                     {topGainers.map(coin => (
                         <div key={coin.id} className="m-4 p-6 border rounded-lg shadow-md w-72 bg-gray-100">
-                            <h3 className="text-xl font-bold">{coin.name}</h3>
-                            <p className="text-lg">Price: ${coin.current_price}</p>
+                            <h3 className="text-xl font-bold text-black">{coin.name}</h3>
+                            <p className="text-lg text-black">Price: ${coin.current_price}</p>
                             <p className="text-lg text-green-500">24h Change: {coin.price_change_percentage_24h}%</p>
                         </div>
                     ))}
