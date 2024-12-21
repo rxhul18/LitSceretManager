@@ -13,6 +13,8 @@ We built this solution using the following technologies:
 - **AI Processing:** [Ollama](https://ollama.com/)
 - **Encryption Tools:** [Lit Protocol](https://litprotocol.com/)
 
+![Screenshot 2024-12-22 at 1 44 34 AM](https://github.com/user-attachments/assets/14d05f64-5d16-4a95-81b9-df52e2dce451)
+
 ---
 ## 🌐 **How to Run Locally**
 
